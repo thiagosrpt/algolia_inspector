@@ -27,9 +27,12 @@ function App() {
     requests = _useState2[0],
     setRequests = _useState2[1];
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(function () {
+    // Load stored requests when the component mounts
     chrome.storage.local.get("requests", function (result) {
       setRequests(result.requests || []);
     });
+
+    // Listen for storage changes and update UI dynamically
     var listener = function listener(changes) {
       if (changes.requests) {
         setRequests(changes.requests.newValue || []);
@@ -40,12 +43,12 @@ function App() {
       return chrome.storage.onChanged.removeListener(listener);
     };
   }, []);
-  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
+  return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement((react__WEBPACK_IMPORTED_MODULE_0___default().Fragment), null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("div", {
     style: {
       padding: "10px",
       fontFamily: "Arial"
     }
-  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h2", null, "Logged Requests"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("ul", {
+  }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("h2", null, "Logged Requests"), requests.length === 0 ? /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("p", null, "No requests captured yet.") : /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("ul", {
     style: {
       listStyle: "none",
       padding: 0
@@ -56,7 +59,8 @@ function App() {
       style: {
         marginBottom: "10px",
         borderBottom: "1px solid #ccc",
-        paddingBottom: "5px"
+        paddingBottom: "5px",
+        wordWrap: "break-word"
       }
     }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("strong", null, req.method), " - ", req.url, " ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("br", null), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("small", null, req.time), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("pre", {
       style: {
@@ -64,10 +68,11 @@ function App() {
         marginTop: "5px",
         background: "#f4f4f4",
         padding: "5px",
-        borderRadius: "4px"
+        borderRadius: "4px",
+        whiteSpace: "pre-wrap" // Ensures long JSON strings wrap correctly
       }
-    }, req.headers));
-  })));
+    }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("strong", null, "Payload:"), " ", /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default().createElement("br", null), " ", req.body || "No payload"));
+  }))));
 }
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (App);
 
