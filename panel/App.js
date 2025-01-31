@@ -22,36 +22,43 @@ function App() {
 
   return (
     <>
-    <div style={{ padding: "10px", fontFamily: "Arial" }}>
-      <h2>Logged Requests</h2>
-      {requests.length === 0 ? (
-        <p>No requests captured yet.</p>
-      ) : (
-        <ul style={{ listStyle: "none", padding: 0 }}>
-          {requests.map((req, index) => (
-            <li key={index} style={{ 
-              marginBottom: "10px", 
-              borderBottom: "1px solid #ccc", 
-              paddingBottom: "5px",
-              wordWrap: "break-word"
-            }}>
-              <strong>{req.method}</strong> - {req.url} <br />
-              <small>{req.time}</small>
-              <pre style={{ 
-                fontSize: "12px", 
-                marginTop: "5px", 
-                background: "#f4f4f4", 
-                padding: "5px", 
-                borderRadius: "4px",
-                whiteSpace: "pre-wrap" // Ensures long JSON strings wrap correctly
-              }}>
-                <strong>Payload:</strong> <br /> {req.body || "No payload"}
-              </pre>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+      <div style={{ padding: "10px", fontFamily: "Arial" }}>
+        <h2>Logged Requests</h2>
+        {requests.length === 0 ? (
+          <p>No requests captured yet.</p>
+        ) : (
+          <ul style={{ listStyle: "none", padding: 0 }}>
+            {requests.map((req, index) => (
+              <li key={index} style={{ marginBottom: "10px", borderBottom: "1px solid #ccc", paddingBottom: "5px", wordWrap: "break-word" }}>
+                <strong>{req.method}</strong> - {req.url} <br />
+                <small>{req.time}</small>
+
+                {/* Render the requests array, and display query and indexName */}
+                {req.parsedBody.requests && req.parsedBody.requests.length > 0 && (
+                  <div>
+                    {req.parsedBody.requests.map((request, idx) => (
+                      <div key={idx} style={{ marginTop: "10px" }}>
+                        {/* Check if query exists directly or within params */}
+                        {(request.query || (request.params && new URLSearchParams(request.params).get('query'))) && (
+                          <div>
+                            <strong>Query:</strong>{" "}
+                            {request.query || new URLSearchParams(request.params).get('query')} <br />
+                          </div>
+                        )}
+                        {request.indexName && (
+                          <div>
+                            <strong>Index Name:</strong> {request.indexName} <br />
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </>
   );
 }
