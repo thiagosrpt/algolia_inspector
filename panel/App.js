@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { QueryRequestItem } from './QueryRequestComponents';
+import { RxUpdate } from "react-icons/rx";
+import { FaTrashAlt } from "react-icons/fa";
+
 
 function App() {
   const [requests, setRequests] = useState([]);
@@ -63,7 +66,7 @@ function App() {
 
   return (
     <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px", gap: "8px" }}>
         <button
           onClick={handleClear}
           style={{
@@ -75,19 +78,22 @@ function App() {
             cursor: "pointer",
           }}
         >
+            <FaTrashAlt style={{ marginRight: "5px"}} />
           Clear
         </button>
+
         <button
           onClick={handleRefresh}
           style={{
             padding: "8px 16px",
-            backgroundColor: "#4CAF50",
+            backgroundColor: "blue",
             color: "white",
             border: "none",
             borderRadius: "4px",
             cursor: "pointer",
           }}
         >
+        <RxUpdate style={{ marginRight: "5px"}} />
           Refresh
         </button>
       </div>

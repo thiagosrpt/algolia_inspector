@@ -5,12 +5,13 @@ import {
   FaInfoCircle,
   FaExclamationTriangle,
 } from "react-icons/fa";
+import { RiArrowDownDoubleLine, RiArrowUpDoubleLine} from "react-icons/ri";
 
 export const QueryRequestItem = ({ request, parseUrl }) => {
   return (
     <li
       style={{
-        marginBottom: "20px",
+        marginBottom: "8px",
         borderRadius: "8px",
         padding: "15px",
         background: "#f9f9f9",
@@ -169,7 +170,7 @@ export const QueryRequestDetails = ({ request }) => {
         }}
         onClick={() => setIsExpanded(!isExpanded)}
       >
-        Additional Details
+        { isExpanded ? <RiArrowUpDoubleLine/> : <RiArrowDownDoubleLine/> } Additional Details
       </div>
 
       {/* Conditionally render the expanded details */}
@@ -181,7 +182,7 @@ export const QueryRequestDetails = ({ request }) => {
               marginTop: "10px",
               display: "flex",
               flexDirection: "column",
-              gap: "5px",
+              gap: "8px",
             }}
           >
             {hitsPerPage && (
