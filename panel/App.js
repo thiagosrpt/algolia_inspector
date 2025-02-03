@@ -1,16 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { QueryRequestItem } from './QueryRequestComponents';
+import { QueryRequestItem } from "./QueryRequestComponents";
 import { RxUpdate } from "react-icons/rx";
 import { FaTrashAlt } from "react-icons/fa";
 
-
 function App() {
   const [requests, setRequests] = useState([]);
+  const [responses, setResponses] = useState([]);
 
   useEffect(() => {
-    // Fetch stored requests on component mount
-    chrome.storage.local.get("requests", (result) => {
+    // Fetch stored requests
+    chrome.storage.local.get(["requests", "responses"], (result) => {
       setRequests(result.requests || []);
+      setResponses(result.responses || []);
     });
 
     // Listen for changes to the stored requests
@@ -18,9 +19,12 @@ function App() {
       if (changes.requests) {
         setRequests(changes.requests.newValue || []);
       }
+      if (changes.responses) {
+        setResponses(changes.responses.newValue || []);
+      }
     };
-
     chrome.storage.onChanged.addListener(listener);
+
     return () => chrome.storage.onChanged.removeListener(listener);
   }, []);
 
@@ -35,9 +39,9 @@ function App() {
         parsedUrl.searchParams.get("x-algolia-application-id") ||
         "Unknown Application ID";
 
-      const queryType = parsedUrl.pathname.includes('/queries')
+      const queryType = parsedUrl.pathname.includes("/queries")
         ? "/QUERIES"
-        : parsedUrl.pathname.includes('/query')
+        : parsedUrl.pathname.includes("/query")
         ? "/QUERY"
         : "No Query Found";
 
@@ -66,7 +70,14 @@ function App() {
 
   return (
     <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px", gap: "8px" }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          marginBottom: "10px",
+          gap: "8px",
+        }}
+      >
         <button
           onClick={handleClear}
           style={{
@@ -78,7 +89,7 @@ function App() {
             cursor: "pointer",
           }}
         >
-            <FaTrashAlt style={{ marginRight: "5px"}} />
+          <FaTrashAlt style={{ marginRight: "5px" }} />
           Clear
         </button>
 
@@ -93,13 +104,15 @@ function App() {
             cursor: "pointer",
           }}
         >
-        <RxUpdate style={{ marginRight: "5px"}} />
+          <RxUpdate style={{ marginRight: "5px" }} />
           Refresh
         </button>
       </div>
 
       {requests.length === 0 ? (
-        <p style={{ textAlign: "center", color: "#555" }}>No requests captured yet.</p>
+        <p style={{ textAlign: "center", color: "#555" }}>
+          No requests captured yet.
+        </p>
       ) : (
         <ul style={{ listStyle: "none", padding: 0 }}>
           {requests.map((req, index) => (
@@ -107,6 +120,33 @@ function App() {
           ))}
         </ul>
       )}
+
+      <div>
+        {responses.length === 0 ? (
+          <p>No responses captured yet.</p>
+        ) : (
+          <ul>
+            {responses.map((res, index) => (
+              <li key={index}>
+                <p>URL: {res.url}</p>
+                <p>Status: {res.status}</p>
+                <p>Time: {res.time}</p>
+
+                {/* If parsedResponseBody is not null, show it nicely */}
+                {res.parsedResponseBody ? (
+                  <pre style={{ background: "#f8f8f8", padding: "10px" }}>
+                    {JSON.stringify(res.parsedResponseBody, null, 2)}
+                  </pre>
+                ) : (
+                  <pre style={{ background: "#f8f8f8", padding: "10px" }}>
+                    {res.rawResponseBody}
+                  </pre>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }
