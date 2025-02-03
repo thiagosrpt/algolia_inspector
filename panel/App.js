@@ -58,8 +58,9 @@ function App() {
 
   // Handle the "Clear" button click to clear all stored requests
   const handleClear = () => {
-    chrome.storage.local.set({ requests: [] }, () => {
+    chrome.storage.local.set({ requests: [], responses: [] }, () => {
       setRequests([]); // Update state to reflect the changes in the UI
+      setResponses([]);
     });
   };
 
@@ -115,9 +116,11 @@ function App() {
         </p>
       ) : (
         <ul style={{ listStyle: "none", padding: 0 }}>
-          {requests.map((req, index) => (
-            <QueryRequestItem key={index} request={req} parseUrl={parseUrl} />
-          ))}
+          <>
+            {requests.map((req, i) => (
+                  <QueryRequestItem key={i} request={req} parseUrl={parseUrl} />
+            ))}
+          </>
         </ul>
       )}
 
@@ -126,27 +129,25 @@ function App() {
           <p>No responses captured yet.</p>
         ) : (
           <ul>
-            {responses.map((res, index) => (
+            {responses.map((responseItem, index) => (
               <li key={index}>
-                <p>URL: {res.url}</p>
-                <p>Status: {res.status}</p>
-                <p>Time: {res.time}</p>
-
-                {/* If parsedResponseBody is not null, show it nicely */}
-                {res.parsedResponseBody ? (
-                  <pre style={{ background: "#f8f8f8", padding: "10px" }}>
-                    {JSON.stringify(res.parsedResponseBody, null, 2)}
-                  </pre>
-                ) : (
-                  <pre style={{ background: "#f8f8f8", padding: "10px" }}>
-                    {res.rawResponseBody}
-                  </pre>
-                )}
+                <div style={{ background: "#f8f8f8", padding: "10px" }}>
+                  {/* Check if results is an array and then map */}
+                  {Array.isArray(responseItem.parsedResponseBody?.results) &&
+                    responseItem.parsedResponseBody.results.map((r, i) => (
+                      <div key={i}>
+                        {/* r.hits often is an array, so you may need a second map if you want each hit */}
+                        queryID: {JSON.stringify(r.queryID, null, 2)}
+                      </div>
+                    ))
+                  }
+                </div>
               </li>
             ))}
           </ul>
         )}
       </div>
+      
     </div>
   );
 }
