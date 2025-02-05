@@ -110,44 +110,16 @@ function App() {
         </button>
       </div>
 
-      {requests.length === 0 ? (
-        <p style={{ textAlign: "center", color: "#555" }}>
-          No requests captured yet.
-        </p>
-      ) : (
-        <ul style={{ listStyle: "none", padding: 0 }}>
-          <>
-            {requests.map((req, i) => (
-                  <QueryRequestItem key={i} request={req} parseUrl={parseUrl} />
-            ))}
-          </>
-        </ul>
-      )}
-
       <div>
-        {responses.length === 0 ? (
-          <p>No responses captured yet.</p>
-        ) : (
-          <ul>
-            {responses.map((responseItem, index) => (
-              <li key={index}>
-                <div style={{ background: "#f8f8f8", padding: "10px" }}>
-                  {/* Check if results is an array and then map */}
-                  {Array.isArray(responseItem.parsedResponseBody?.results) &&
-                    responseItem.parsedResponseBody.results.map((r, i) => (
-                      <div key={i}>
-                        {/* r.hits often is an array, so you may need a second map if you want each hit */}
-                        queryID: {JSON.stringify(r.queryID, null, 2)}
-                      </div>
-                    ))
-                  }
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
+        {requests.map((req, i) => (
+          <QueryRequestItem
+            key={i}
+            request={req} // pass the entire top-level request
+            response={responses[i] || {}}
+            parseUrl={parseUrl}
+          />
+        ))}
       </div>
-      
     </div>
   );
 }

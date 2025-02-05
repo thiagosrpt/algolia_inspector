@@ -5,11 +5,13 @@ import {
   FaInfoCircle,
   FaExclamationTriangle,
 } from "react-icons/fa";
-import { RiArrowDownDoubleLine, RiArrowUpDoubleLine} from "react-icons/ri";
+import { RiArrowDownDoubleLine, RiArrowUpDoubleLine } from "react-icons/ri";
 
-export const QueryRequestItem = ({ request, parseUrl }) => {
+export const QueryRequestItem = ({ request, response, parseUrl }) => {
+  // Now `request.parsedRequestBody` is the full top-level object
+
   return (
-    <li
+    <div
       style={{
         marginBottom: "8px",
         borderRadius: "8px",
@@ -44,7 +46,25 @@ export const QueryRequestItem = ({ request, parseUrl }) => {
         request.parsedBody.requests.length > 0 && (
           <QueryRequestBody requests={request.parsedBody.requests} />
         )}
-    </li>
+
+      {/* Render the entire response or parsedResponseBody in a <pre> */}
+      {response?.parsedResponseBody && (
+        <div style={{ marginTop: "10px" }}>
+          <strong>Response:</strong>
+          <pre
+            style={{
+              backgroundColor: "#eee",
+              padding: "10px",
+              borderRadius: "5px",
+              overflowX: "auto",
+              maxHeight: "200px",
+            }}
+          >
+            {JSON.stringify(response.parsedResponseBody, null, 2)}
+          </pre>
+        </div>
+      )}
+    </div>
   );
 };
 
@@ -170,7 +190,8 @@ export const QueryRequestDetails = ({ request }) => {
         }}
         onClick={() => setIsExpanded(!isExpanded)}
       >
-        { isExpanded ? <RiArrowUpDoubleLine/> : <RiArrowDownDoubleLine/> } Additional Details
+        {isExpanded ? <RiArrowUpDoubleLine /> : <RiArrowDownDoubleLine />}{" "}
+        Additional Details
       </div>
 
       {/* Conditionally render the expanded details */}
@@ -190,9 +211,9 @@ export const QueryRequestDetails = ({ request }) => {
                 <small>hitsPerPage</small> {hitsPerPage}
               </div>
             )}
-              <div>
-                <small>clickAnalytics</small> {clickAnalytics ? "true" : "false"}
-              </div>
+            <div>
+              <small>clickAnalytics</small> {clickAnalytics ? "true" : "false"}
+            </div>
             {analyticsTags && (
               <div
                 style={{
