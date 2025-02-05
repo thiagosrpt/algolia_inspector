@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import ReactJson from "@microlink/react-json-view";
 import {
   FaSearch,
   FaUser,
@@ -47,21 +48,20 @@ export const QueryRequestItem = ({ request, response, parseUrl }) => {
           <QueryRequestBody requests={request.parsedBody.requests} />
         )}
 
-      {/* Render the entire response or parsedResponseBody in a <pre> */}
+      {/* Render the JSON response with collapsible UI */}
       {response?.parsedResponseBody && (
-        <div style={{ marginTop: "10px" }}>
+        <div style={{ marginTop: "10px", background: "white", borderRadius: 8, padding: 8}}>
           <strong>Response:</strong>
-          <pre
-            style={{
-              backgroundColor: "#eee",
-              padding: "10px",
-              borderRadius: "5px",
-              overflowX: "auto",
-              maxHeight: "200px",
-            }}
-          >
-            {JSON.stringify(response.parsedResponseBody, null, 2)}
-          </pre>
+          <ReactJson
+            src={response.parsedResponseBody}
+            theme="rjv-default"
+            collapsed={0}
+            enableClipboard={true}
+            displayDataTypes={false}
+            displayObjectSize={false}
+            iconStyle="circle"
+            name={false} // Hides root object name
+          />
         </div>
       )}
     </div>
