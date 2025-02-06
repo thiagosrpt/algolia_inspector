@@ -9,8 +9,6 @@ import {
 import { RiArrowDownDoubleLine, RiArrowUpDoubleLine } from "react-icons/ri";
 
 export const QueryRequestItem = ({ request, response, parseUrl }) => {
-  // Now `request.parsedRequestBody` is the full top-level object
-
   return (
     <div
       style={{
@@ -30,7 +28,7 @@ export const QueryRequestItem = ({ request, response, parseUrl }) => {
     >
       <div style={{ display: "flex", alignItems: "center" }}>
         <strong style={{ fontSize: "16px", marginRight: "10px" }}>
-          {request.method}
+          {response.status} {request.method}
         </strong>
         <span style={{ fontSize: "14px", color: "#777" }}>
           {parseUrl(request.url).queryType}
@@ -43,203 +41,202 @@ export const QueryRequestItem = ({ request, response, parseUrl }) => {
         <small>{request.time}</small>
       </div>
 
-      {request.parsedBody.requests &&
-        request.parsedBody.requests.length > 0 && (
-          <QueryRequestBody requests={request.parsedBody.requests} />
-        )}
+      {request?.parsedBody?.requests &&
+        (() => {
+          const requests = request.parsedBody.requests;
 
-      {/* Render the JSON response with collapsible UI */}
-      {response?.parsedResponseBody && (
-        <div style={{ marginTop: "10px", background: "white", borderRadius: 8, padding: 8}}>
-          <strong>Response:</strong>
+          // Extract clickAnalytics values from both direct property and query params
+          const clickAnalyticsValues = requests.map((req) => {
+            const urlParams = new URLSearchParams(req.params);
+            return (
+              req.clickAnalytics ?? urlParams.get("clickAnalytics") === "true"
+            );
+          });
+
+          const allClickTrue = clickAnalyticsValues.every(
+            (val) => val === true
+          );
+          const allClickFalse = clickAnalyticsValues.every(
+            (val) => val === false
+          );
+
+          // Extract userToken values from both direct property and query params
+          const userTokens = requests
+            .map(
+              (req) =>
+                req.userToken ||
+                new URLSearchParams(req.params).get("userToken")
+            )
+            .filter(Boolean); // Remove falsy values
+
+          const uniqueUserTokens = [...new Set(userTokens)]; // Get unique userTokens
+
+          // Extract unique queries
+          const queryTerms = [
+            ...new Set(
+              requests
+                .map(
+                  (req) =>
+                    req.query || new URLSearchParams(req.params).get("query")
+                )
+                .filter(Boolean)
+            ),
+          ];
+
+          // Extract and normalize analyticsTags
+          const analyticsTags = requests
+            .flatMap((req) => {
+              const tagValue =
+                req.analyticsTags ||
+                new URLSearchParams(req.params).get("analyticsTags");
+              return Array.isArray(tagValue) ? tagValue : tagValue?.split(",");
+            })
+            .filter(Boolean);
+
+          const uniqueAnalyticsTags = [...new Set(analyticsTags)]; // Remove duplicates
+
+          // Extract and normalize ruleContexts
+          const ruleContexts = requests
+            .flatMap((req) => {
+              const contextValue =
+                req.ruleContexts ||
+                new URLSearchParams(req.params).get("ruleContexts");
+              return Array.isArray(contextValue)
+                ? contextValue
+                : contextValue?.split(",");
+            })
+            .filter(Boolean);
+
+          const uniqueRuleContexts = [...new Set(ruleContexts)]; // Remove duplicates
+
+          // Define messages
+          const clickAnalyticsMessage = allClickTrue
+            ? "true"
+            : allClickFalse
+            ? "false"
+            : "requests contain trackable and untrackable query requests";
+
+          let userTokenMessage;
+          if (uniqueUserTokens.length === 1) {
+            userTokenMessage = `User Token: ${uniqueUserTokens[0]}`;
+          } else if (uniqueUserTokens.length > 1) {
+            userTokenMessage = "Multiple user tokens detected";
+          } else {
+            userTokenMessage = "No user token found";
+          }
+
+          return (
+            <div
+              style={{
+                marginTop: "10px",
+                background: "#fff",
+                borderRadius: 8,
+                padding: "10px",
+                boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)",
+                fontFamily: "Arial, sans-serif",
+              }}
+            >
+              <div style={{ fontWeight: "bold", marginBottom: "5px" }}>
+                Click Analytics:
+              </div>
+              <div style={{ color: "#333", marginBottom: "10px" }}>
+                {clickAnalyticsMessage}
+              </div>
+
+              <div style={{ fontWeight: "bold", marginBottom: "5px" }}>
+                User Token:
+              </div>
+              <div style={{ color: "#333", marginBottom: "10px" }}>
+                {userTokenMessage}
+              </div>
+
+              <div style={{ fontWeight: "bold", marginBottom: "5px" }}>
+                Query Terms:
+              </div>
+              <div style={{ color: "#333", marginBottom: "10px" }}>
+                {queryTerms.length > 0
+                  ? queryTerms.join(", ")
+                  : "No query term found"}
+              </div>
+
+              <div style={{ fontWeight: "bold", marginBottom: "5px" }}>
+                Analytics Tags:
+              </div>
+              <div style={{ color: "#333", marginBottom: "10px" }}>
+                {uniqueAnalyticsTags.length > 0
+                  ? uniqueAnalyticsTags.join(", ")
+                  : "No analytics tags found"}
+              </div>
+
+              <div style={{ fontWeight: "bold", marginBottom: "5px" }}>
+                Rule Contexts:
+              </div>
+              <div style={{ color: "#333" }}>
+                {uniqueRuleContexts.length > 0
+                  ? uniqueRuleContexts.join(", ")
+                  : "No rule contexts found"}
+              </div>
+            </div>
+          );
+        })()}
+
+      {/* Render the JSON request with collapsible UI */}
+      {request?.parsedBody && (
+        <div
+          style={{
+            marginTop: "10px",
+            background: "white",
+            borderRadius: 8,
+            padding: 8,
+          }}
+        >
+          <strong>Request Details</strong>
           <ReactJson
-            src={response.parsedResponseBody}
+            src={request.parsedBody}
             theme="rjv-default"
             collapsed={0}
             enableClipboard={true}
             displayDataTypes={false}
             displayObjectSize={false}
-            iconStyle="circle"
-            name={false} // Hides root object name
+            iconStyle="square"
+            name={false}
           />
         </div>
       )}
-    </div>
-  );
-};
 
-export const QueryRequestBody = ({ requests }) => {
-  return (
-    <div style={{ marginTop: "10px" }}>
-      {requests.map((request, idx) => (
-        <QueryRequestDetails key={idx} request={request} />
-      ))}
-    </div>
-  );
-};
-
-export const QueryRequestDetails = ({ request }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-
-  // Function to parse the analyticsTags string and return an array
-  const parseTags = (tags) => {
-    if (Array.isArray(tags)) {
-      return tags; // If it's already an array, return as is
-    } else if (typeof tags === "string") {
-      try {
-        // Check if it's a stringified array (e.g., '["tag1", "tag2"]')
-        const parsedArray = JSON.parse(tags);
-        if (Array.isArray(parsedArray)) {
-          return parsedArray;
-        }
-      } catch (error) {
-        console.error("Error parsing analyticsTags:", error);
-      }
-      // If it's not a stringified array, assume it's a comma-separated string
-      return tags.split(",").map((tag) => tag.trim());
-    }
-    return [];
-  };
-
-  // Function to render each tag as a bubble
-  const renderArrayTags = (tags) => {
-    return tags.map((tag, idx) => (
-      <div
-        key={idx}
-        style={{
-          margin: "5px",
-          padding: "4px 8px",
-          borderRadius: "20px",
-          backgroundColor: "#007bff",
-          color: "white",
-          fontSize: "10px",
-          display: "inline-block",
-          whiteSpace: "nowrap",
-        }}
-      >
-        {tag}
-      </div>
-    ));
-  };
-
-  // Retrieve analyticsTags, either from the object or URLSearchParams
-  const analyticsTags =
-    request.analyticsTags ||
-    new URLSearchParams(request.params).get("analyticsTags");
-  const ruleContexts =
-    request.ruleContexts ||
-    new URLSearchParams(request.params).get("ruleContexts");
-  const clickAnalytics =
-    request.clickAnalytics ||
-    new URLSearchParams(request.params).get("clickAnalytics");
-  const hitsPerPage =
-    request.hitsPerPage ||
-    new URLSearchParams(request.params).get("hitsPerPage");
-
-  return (
-    <div
-      style={{
-        marginTop: "10px",
-        padding: "8px",
-        borderRadius: "8px",
-        backgroundColor: "white",
-      }}
-    >
-      {(request.query ||
-        (request.params &&
-          new URLSearchParams(request.params).get("query"))) && (
-        <div style={{ display: "flex", alignItems: "center" }}>
-          <FaSearch style={{ marginRight: "5px", color: "#007bff" }} />
-          <small>Searching:</small>
-          <span style={{ marginLeft: "5px" }}>
-            {request.query || new URLSearchParams(request.params).get("query")}
-          </span>
-        </div>
-      )}
-
-      {request.indexName && (
+      {/* Render the JSON response with collapsible UI */}
+      {response?.parsedResponseBody ? (
         <div
-          style={{ marginTop: "8px", display: "flex", alignItems: "center" }}
+          style={{
+            marginTop: "10px",
+            background: "white",
+            borderRadius: 8,
+            padding: 8,
+          }}
         >
-          <FaInfoCircle style={{ marginRight: "5px", color: "#28a745" }} />
-          <small>Index Name: </small>
-          <span style={{ marginLeft: "5px" }}>{request.indexName}</span>
+          <strong>Response Details</strong>
+          <ReactJson
+            src={response.parsedResponseBody.requests || response.parsedResponseBody}
+            theme="rjv-default"
+            collapsed={0}
+            enableClipboard={true}
+            displayDataTypes={false}
+            displayObjectSize={false}
+            iconStyle="square"
+            name={false}
+          />
         </div>
-      )}
-
-      <div style={{ marginTop: "8px", display: "flex", alignItems: "center" }}>
-        <FaUser style={{ marginRight: "5px", color: "#f39c12" }} />
-        <small>userToken: </small>
-        <span style={{ marginLeft: "5px" }}>
-          {request.userToken ||
-            new URLSearchParams(request.params).get("userToken") || (
-              <FaExclamationTriangle
-                style={{ marginRight: "5px", color: "red" }}
-              />
-            )}
-        </span>
-      </div>
-
-      {/* Toggle Button for Additional Details */}
-      <div
-        style={{
-          marginTop: "10px",
-          cursor: "pointer",
-          fontSize: "10px",
-          color: "#007bff",
-        }}
-        onClick={() => setIsExpanded(!isExpanded)}
-      >
-        {isExpanded ? <RiArrowUpDoubleLine /> : <RiArrowDownDoubleLine />}{" "}
-        Additional Details
-      </div>
-
-      {/* Conditionally render the expanded details */}
-      {isExpanded && (
-        <>
-          <hr></hr>
-          <div
-            style={{
-              marginTop: "10px",
-              display: "flex",
-              flexDirection: "column",
-              gap: "8px",
-            }}
-          >
-            {hitsPerPage && (
-              <div>
-                <small>hitsPerPage</small> {hitsPerPage}
-              </div>
-            )}
-            <div>
-              <small>clickAnalytics</small> {clickAnalytics ? "true" : "false"}
-            </div>
-            {analyticsTags && (
-              <div
-                style={{
-                  display: "flex",
-                  flexWrap: "wrap",
-                  flexDirection: "column",
-                }}
-              >
-                <small style={{ marginRight: "5px" }}>analyticsTags</small>
-                <div>{renderArrayTags(parseTags(analyticsTags))}</div>
-              </div>
-            )}
-            {ruleContexts && (
-              <div
-                style={{
-                  display: "flex",
-                  flexWrap: "wrap",
-                  flexDirection: "column",
-                }}
-              >
-                <small style={{ marginRight: "5px" }}>ruleContexts</small>
-                <div>{renderArrayTags(parseTags(ruleContexts))}</div>
-              </div>
-            )}
-          </div>
-        </>
+      ) : (
+        <div
+          style={{
+            marginTop: "10px",
+            background: "white",
+            borderRadius: 8,
+            padding: 8,
+          }}
+        >
+          No Response Found.
+        </div>
       )}
     </div>
   );

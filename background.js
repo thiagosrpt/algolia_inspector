@@ -1,7 +1,6 @@
 chrome.webRequest.onBeforeRequest.addListener(
     (details) => {
       if (!details || !details.requestBody) return;
-
   
       let requestBody = "";
       let parsedBody = {};
